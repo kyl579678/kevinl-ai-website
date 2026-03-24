@@ -3,15 +3,22 @@
 
 cd "$(dirname "$0")"
 
+# Load environment variables from .env if it exists
+if [ -f .env ]; then
+    export $(grep -v '^#' .env | xargs)
+    echo "✅ Loaded configuration from .env"
+fi
+
 # Set password (change this!)
 export ADMIN_PASSWORD="${ADMIN_PASSWORD:-kevin2026}"
 
 # Optional: Set Anthropic API key to enable AI analysis
-# export ANTHROPIC_API_KEY="sk-ant-..."
+# Will be loaded from .env if available
 
 echo "Starting server with:"
 echo "  - Admin password: ${ADMIN_PASSWORD:0:3}***"
-echo "  - AI enabled: ${ANTHROPIC_API_KEY:+YES}"
+echo "  - AI enabled: ${ANTHROPIC_API_KEY:+YES (API key configured)}"
+[ -z "$ANTHROPIC_API_KEY" ] && echo "  ⚠️  AI disabled: Set ANTHROPIC_API_KEY in .env to enable"
 
 # Kill existing server
 pkill -f "uvicorn backend.main" 2>/dev/null

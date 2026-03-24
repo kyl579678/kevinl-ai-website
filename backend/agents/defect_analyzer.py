@@ -113,32 +113,47 @@ Provide concise, actionable insights in JSON format:
 }}
 """
         
-        try:
-            response = self.client.messages.create(
-                model="claude-3-5-sonnet-20241022",
-                max_tokens=1024,
-                messages=[{"role": "user", "content": prompt}]
-            )
-            
-            # Parse JSON from response
-            content = response.content[0].text
-            # Extract JSON if wrapped in markdown
-            if "```json" in content:
-                content = content.split("```json")[1].split("```")[0].strip()
-            elif "```" in content:
-                content = content.split("```")[1].split("```")[0].strip()
-            
-            analysis = json.loads(content)
-            analysis["enabled"] = True
-            analysis["wafer_id"] = wafer_id
-            return analysis
-            
-        except Exception as e:
-            return {
-                "enabled": False,
-                "error": str(e),
-                "message": f"Analysis failed: {e}",
-            }
+        # Try multiple model versions
+        models_to_try = [
+            "claude-3-5-sonnet-20241022",
+            "claude-3-5-sonnet-20240620",
+            "claude-3-opus-20240229",
+            "claude-3-sonnet-20240229",
+        ]
+        
+        last_error = None
+        for model in models_to_try:
+            try:
+                response = self.client.messages.create(
+                    model=model,
+                    max_tokens=2048,
+                    messages=[{"role": "user", "content": prompt}]
+                )
+                
+                # Parse JSON from response
+                content = response.content[0].text
+                # Extract JSON if wrapped in markdown
+                if "```json" in content:
+                    content = content.split("```json")[1].split("```")[0].strip()
+                elif "```" in content:
+                    content = content.split("```")[1].split("```")[0].strip()
+                
+                analysis = json.loads(content)
+                analysis["enabled"] = True
+                analysis["wafer_id"] = wafer_id
+                analysis["model_used"] = model
+                return analysis
+                
+            except Exception as e:
+                last_error = e
+                continue
+        
+        # All models failed
+        return {
+            "enabled": False,
+            "error": str(last_error),
+            "message": f"AI analysis unavailable: API key may have limited model access. Contact admin to upgrade API key permissions.",
+        }
     
     def find_similar_defect_patterns(
         self,
