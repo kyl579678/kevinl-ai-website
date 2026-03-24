@@ -105,39 +105,48 @@ def generate_production_history() -> None:
     ]
 
     all_rows = []
-    # Assign each wafer a fixed tool route (same tool per stage for consistency)
+    # Each wafer goes through all stages with multiple measurement cycles per chamber
     for wafer_id, lot_id, wafer_ts in wafers:
         base_ts = datetime.fromisoformat(wafer_ts)
 
         for stage_idx, stage_name in enumerate(STAGE_ORDER):
             stage = STAGES[stage_name]
+            # Pick one tool for this stage (realistic: same tool processes entire wafer)
             tool_id = random.choice(stage["tools"])
-            chamber_id = f"CH{random.randint(1, stage['chambers'])}"
-            # Each stage happens a few hours after the previous
-            stage_ts = base_ts + timedelta(hours=stage_idx * 4, minutes=random.randint(0, 60))
+            
+            # Process in each chamber (wafers rotate through chambers)
+            for chamber_num in range(1, stage["chambers"] + 1):
+                chamber_id = f"CH{chamber_num}"
+                # Each chamber has 3-5 measurement cycles (pre/mid/post process checks)
+                num_cycles = random.randint(3, 5)
+                
+                for cycle in range(num_cycles):
+                    # Timestamp: stage starts at stage_idx*4 hours, chamber cycles add minutes
+                    cycle_offset = chamber_num * 15 + cycle * 5  # stagger by chamber and cycle
+                    stage_ts = base_ts + timedelta(hours=stage_idx * 4, minutes=cycle_offset)
 
-            for param_name, spec in stage["parameters"].items():
-                # Occasionally inject an out-of-spec value (~5% chance)
-                if random.random() < 0.05:
-                    # Shift mean toward one of the limits
-                    direction = random.choice([-1, 1])
-                    shift = direction * spec["sigma"] * np.random.uniform(2.5, 4.0)
-                    value = spec["nominal"] + shift
-                else:
-                    value = np.random.normal(spec["nominal"], spec["sigma"])
+                    for param_name, spec in stage["parameters"].items():
+                        # Occasionally inject an out-of-spec value (~5% chance)
+                        if random.random() < 0.05:
+                            # Shift mean toward one of the limits
+                            direction = random.choice([-1, 1])
+                            shift = direction * spec["sigma"] * np.random.uniform(2.5, 4.0)
+                            value = spec["nominal"] + shift
+                        else:
+                            value = np.random.normal(spec["nominal"], spec["sigma"])
 
-                all_rows.append({
-                    "wafer_id": wafer_id,
-                    "lot_id": lot_id,
-                    "stage_id": stage_name,
-                    "tool_id": tool_id,
-                    "chamber_id": chamber_id,
-                    "timestamp": stage_ts.isoformat(),
-                    "parameter_name": param_name,
-                    "parameter_value": round(value, 6),
-                    "upper_limit": spec["upper"],
-                    "lower_limit": spec["lower"],
-                })
+                        all_rows.append({
+                            "wafer_id": wafer_id,
+                            "lot_id": lot_id,
+                            "stage_id": stage_name,
+                            "tool_id": tool_id,
+                            "chamber_id": chamber_id,
+                            "timestamp": stage_ts.isoformat(),
+                            "parameter_name": param_name,
+                            "parameter_value": round(value, 6),
+                            "upper_limit": spec["upper"],
+                            "lower_limit": spec["lower"],
+                        })
 
     out_path = OUTPUT_DIR / "production_history.csv"
     with open(out_path, "w", newline="") as f:
