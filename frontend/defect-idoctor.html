@@ -386,11 +386,11 @@
         <ul>
             <li><strong>Backend:</strong> FastAPI (Python) serving REST APIs</li>
             <li><strong>Frontend:</strong> Vanilla JS + Chart.js + SVG</li>
-            <li><strong>Data:</strong> Synthetic datasets (100 wafers, 27k+ defects, 2k+ production records)</li>
+            <li><strong>Data:</strong> Synthetic datasets (100 wafers, 27k+ defects, 20k+ production records)</li>
         </ul>
 
         <h2>Data Pipeline</h2>
-        <p>Synthetic data generators create realistic defect distributions and FDC parameter traces with configurable patterns. ~5% of production parameters are intentionally out-of-spec to simulate excursion scenarios.</p>
+        <p>Synthetic data generators create realistic defect distributions and FDC parameter traces with configurable patterns. Each wafer has 200+ measurement records across 5 process stages (Litho/Etch/CVD/CMP/Implant), multiple tools and chambers. ~0.7% of production parameters are intentionally out-of-spec to simulate excursion scenarios.</p>
 
         <p style="margin-top:2rem;font-size:0.85rem;color:var(--text-secondary)">Built by Kevin Lin &middot; kevinl-ai.com</p>
     </div>
