@@ -38,6 +38,24 @@
             from { opacity: 0; transform: translateY(-20px); }
             to { opacity: 1; transform: translateY(0); }
         }
+        .demo-link {
+            display: inline-block;
+            margin-top: 24px;
+            padding: 12px 32px;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 1.05em;
+            font-weight: 600;
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255,255,255,0.25);
+            transition: background 0.2s, transform 0.2s;
+        }
+        .demo-link:hover {
+            background: rgba(255,255,255,0.35);
+            transform: translateY(-2px);
+        }
     </style>
 </head>
 <body>
@@ -45,6 +63,7 @@
         <h1>🎉 我成功了！</h1>
         <p>kevinl-ai.com 正式上線</p>
         <p style="font-size: 0.9em; opacity: 0.7;">Powered by Cloudflare Tunnel</p>
+        <a href="/frontend/defect-idoctor.html" class="demo-link">&#x1F52C; Defect iDoctor Demo</a>
     </div>
 </body>
 </html>
