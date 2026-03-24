@@ -10,6 +10,8 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
+from pydantic import BaseModel
+from typing import Optional
 
 app = FastAPI(title="Defect iDoctor API", version="1.0.0")
 
@@ -132,6 +134,80 @@ def get_production_history(
 def get_trends():
     """Get pre-computed trend analysis data."""
     return _trend_data
+
+
+@app.get("/api/agent/analyze/{wafer_id}")
+def analyze_wafer(wafer_id: str):
+    """AI-powered analysis of a specific wafer."""
+    # Import here to avoid errors if anthropic not installed
+    try:
+        from agents.defect_analyzer import get_analyzer
+    except ImportError:
+        return {
+            "enabled": False,
+            "message": "AI Agent module not available. Install: pip install anthropic"
+        }
+    
+    # Get wafer defect data
+    wafer_defects = [r for r in _defect_rows if r["wafer_id"] == wafer_id]
+    if not wafer_defects:
+        raise HTTPException(status_code=404, detail=f"Wafer {wafer_id} not found")
+    
+    wafer_data = {
+        "wafer_id": wafer_id,
+        "lot_id": wafer_defects[0]["lot_id"],
+        "defect_count": len(wafer_defects),
+        "defects": [
+            {
+                "x": float(r["x"]),
+                "y": float(r["y"]),
+                "defect_code": int(r["defect_code"]),
+                "timestamp": r["timestamp"],
+            }
+            for r in wafer_defects
+        ]
+    }
+    
+    # Get production history
+    prod_history = [r for r in _production_rows if r["wafer_id"] == wafer_id]
+    
+    # Run AI analysis
+    analyzer = get_analyzer()
+    result = analyzer.analyze_wafer_defects(wafer_data, prod_history)
+    
+    return result
+
+
+@app.get("/api/agent/similar/{wafer_id}")
+def find_similar_wafers(wafer_id: str, top_k: int = 5):
+    """Find wafers with similar defect patterns."""
+    try:
+        from agents.defect_analyzer import get_analyzer
+    except ImportError:
+        return {"enabled": False, "message": "AI Agent not available"}
+    
+    # Get target wafer
+    target_defects = [r for r in _defect_rows if r["wafer_id"] == wafer_id]
+    if not target_defects:
+        raise HTTPException(status_code=404, detail=f"Wafer {wafer_id} not found")
+    
+    target_data = {
+        "wafer_id": wafer_id,
+        "defects": [
+            {"defect_code": int(r["defect_code"])}
+            for r in target_defects
+        ]
+    }
+    
+    # Get all wafer summaries
+    all_wafers = []
+    for wid in _wafer_ids[:20]:  # Limit to 20 for performance
+        all_wafers.append({"wafer_id": wid})
+    
+    analyzer = get_analyzer()
+    result = analyzer.find_similar_defect_patterns(target_data, all_wafers, top_k)
+    
+    return result
 
 
 @app.get("/api/stats")

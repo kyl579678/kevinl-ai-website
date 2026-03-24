@@ -4,6 +4,62 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Defect iDoctor - Semiconductor Defect Diagnosis</title>
+
+// ============================== AI AGENT ==============================
+document.addEventListener('DOMContentLoaded', () => {
+    const aiBtn = document.getElementById('ai-analyze-btn');
+    const aiResult = document.getElementById('ai-analysis-result');
+    
+    if (aiBtn) {
+        aiBtn.addEventListener('click', async () => {
+            const waferId = document.getElementById('info-wid').textContent;
+            if (waferId === '--') {
+                alert('Please select a wafer first');
+                return;
+            }
+            
+            aiBtn.disabled = true;
+            aiBtn.textContent = '🤖 Analyzing...';
+            aiResult.style.display = 'none';
+            
+            try {
+                const data = await fetchJSON(`/api/agent/analyze/${waferId}`);
+                
+                if (!data.enabled) {
+                    aiResult.innerHTML = `<div style="color:var(--yellow)">${data.message || 'AI Agent not available'}</div>`;
+                } else {
+                    const severity = data.severity || 'Unknown';
+                    const severityColor = severity === 'High' ? 'var(--red)' : severity === 'Medium' ? 'var(--yellow)' : 'var(--green)';
+                    
+                    aiResult.innerHTML = `
+                        <div style="margin-bottom:0.75rem"><strong>Severity:</strong> <span style="color:${severityColor}">${severity}</span></div>
+                        <div style="margin-bottom:0.75rem"><strong>Summary:</strong><br/>${data.summary || 'N/A'}</div>
+                        <div style="margin-bottom:0.75rem"><strong>Suspected Root Causes:</strong><br/>
+                            <ul style="margin:0.25rem 0 0 1.25rem">
+                                ${(data.suspected_root_causes || []).map(c => `<li>${c}</li>`).join('')}
+                            </ul>
+                        </div>
+                        <div style="margin-bottom:0.75rem"><strong>Stages to Investigate:</strong> ${(data.stages_to_investigate || []).join(', ')}</div>
+                        <div><strong>Recommendations:</strong><br/>
+                            <ul style="margin:0.25rem 0 0 1.25rem">
+                                ${(data.recommendations || []).map(r => `<li>${r}</li>`).join('')}
+                            </ul>
+                        </div>
+                    `;
+                }
+                
+                aiResult.style.display = 'block';
+                
+            } catch (err) {
+                aiResult.innerHTML = `<div style="color:var(--red)">Error: ${err.message}</div>`;
+                aiResult.style.display = 'block';
+            } finally {
+                aiBtn.disabled = false;
+                aiBtn.textContent = '🤖 AI Analysis';
+            }
+        });
+    }
+});
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
         :root {
@@ -318,6 +374,10 @@
                     <dt>Defect Count</dt><dd id="info-count">--</dd>
                     <dt>Unique Codes</dt><dd id="info-codes">--</dd>
                 </dl>
+                <button id="ai-analyze-btn" style="width:100%;margin-top:1rem;padding:0.75rem;background:linear-gradient(135deg,#667eea,#764ba2);color:white;border:none;border-radius:6px;font-weight:600;cursor:pointer;font-size:0.9rem">
+                    🤖 AI Analysis
+                </button>
+                <div id="ai-analysis-result" style="display:none;margin-top:1rem;padding:1rem;background:rgba(59,130,246,0.1);border:1px solid var(--accent);border-radius:6px;font-size:0.85rem"></div>
             </div>
         </div>
     </div>
@@ -724,6 +784,62 @@ async function loadAnalysis() {
         }
     });
 }
+
+// ============================== AI AGENT ==============================
+document.addEventListener('DOMContentLoaded', () => {
+    const aiBtn = document.getElementById('ai-analyze-btn');
+    const aiResult = document.getElementById('ai-analysis-result');
+    
+    if (aiBtn) {
+        aiBtn.addEventListener('click', async () => {
+            const waferId = document.getElementById('info-wid').textContent;
+            if (waferId === '--') {
+                alert('Please select a wafer first');
+                return;
+            }
+            
+            aiBtn.disabled = true;
+            aiBtn.textContent = '🤖 Analyzing...';
+            aiResult.style.display = 'none';
+            
+            try {
+                const data = await fetchJSON(`/api/agent/analyze/${waferId}`);
+                
+                if (!data.enabled) {
+                    aiResult.innerHTML = `<div style="color:var(--yellow)">${data.message || 'AI Agent not available'}</div>`;
+                } else {
+                    const severity = data.severity || 'Unknown';
+                    const severityColor = severity === 'High' ? 'var(--red)' : severity === 'Medium' ? 'var(--yellow)' : 'var(--green)';
+                    
+                    aiResult.innerHTML = `
+                        <div style="margin-bottom:0.75rem"><strong>Severity:</strong> <span style="color:${severityColor}">${severity}</span></div>
+                        <div style="margin-bottom:0.75rem"><strong>Summary:</strong><br/>${data.summary || 'N/A'}</div>
+                        <div style="margin-bottom:0.75rem"><strong>Suspected Root Causes:</strong><br/>
+                            <ul style="margin:0.25rem 0 0 1.25rem">
+                                ${(data.suspected_root_causes || []).map(c => `<li>${c}</li>`).join('')}
+                            </ul>
+                        </div>
+                        <div style="margin-bottom:0.75rem"><strong>Stages to Investigate:</strong> ${(data.stages_to_investigate || []).join(', ')}</div>
+                        <div><strong>Recommendations:</strong><br/>
+                            <ul style="margin:0.25rem 0 0 1.25rem">
+                                ${(data.recommendations || []).map(r => `<li>${r}</li>`).join('')}
+                            </ul>
+                        </div>
+                    `;
+                }
+                
+                aiResult.style.display = 'block';
+                
+            } catch (err) {
+                aiResult.innerHTML = `<div style="color:var(--red)">Error: ${err.message}</div>`;
+                aiResult.style.display = 'block';
+            } finally {
+                aiBtn.disabled = false;
+                aiBtn.textContent = '🤖 AI Analysis';
+            }
+        });
+    }
+});
 </script>
 </body>
 </html>
