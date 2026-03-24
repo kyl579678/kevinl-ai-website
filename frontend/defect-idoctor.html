@@ -587,6 +587,14 @@ async function selectWafer(waferId, el) {
     document.getElementById('info-lot').textContent = data.lot_id;
     document.getElementById('info-count').textContent = fmt(data.defect_count);
     document.getElementById('info-codes').textContent = uniqueCodes.size;
+
+    // Auto-sync production history filter to selected wafer
+    const filterWafer = document.getElementById('filter-wafer');
+    if (filterWafer && filterWafer.value !== waferId) {
+        filterWafer.value = waferId;
+        prodOffset = 0;
+        loadProductionPage();
+    }
 }
 
 async function loadProductionPage() {
