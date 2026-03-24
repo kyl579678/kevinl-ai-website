@@ -6,12 +6,24 @@ import json
 from collections import defaultdict
 from pathlib import Path
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from typing import Optional
+
+# Import auth module
+try:
+    from backend.auth import require_auth, verify_password, create_session
+    AUTH_AVAILABLE = True
+except ImportError:
+    try:
+        from auth import require_auth, verify_password, create_session
+        AUTH_AVAILABLE = True
+    except ImportError:
+        AUTH_AVAILABLE = False
+        def require_auth(): pass
 
 app = FastAPI(title="Defect iDoctor API", version="1.0.0")
 
@@ -136,17 +148,50 @@ def get_trends():
     return _trend_data
 
 
-@app.get("/api/agent/analyze/{wafer_id}")
+class LoginRequest(BaseModel):
+    password: str
+
+
+@app.post("/api/auth/login")
+def login(req: LoginRequest):
+    """Login endpoint - returns session token."""
+    if not AUTH_AVAILABLE:
+        return {"enabled": False, "message": "Auth module not available"}
+    
+    if verify_password(req.password):
+        token = create_session()
+        return {
+            "success": True,
+            "token": token,
+            "expires_in": 86400,  # 24 hours in seconds
+        }
+    else:
+        raise HTTPException(status_code=401, detail="Invalid password")
+
+
+@app.get("/api/auth/status")
+def auth_status():
+    """Check if authentication is enabled."""
+    return {
+        "enabled": AUTH_AVAILABLE,
+        "message": "Authentication is required for AI features" if AUTH_AVAILABLE else "No authentication configured"
+    }
+
+
+@app.get("/api/agent/analyze/{wafer_id}", dependencies=[Depends(require_auth)] if AUTH_AVAILABLE else [])
 def analyze_wafer(wafer_id: str):
     """AI-powered analysis of a specific wafer."""
     # Import here to avoid errors if anthropic not installed
     try:
-        from agents.defect_analyzer import get_analyzer
+        from backend.agents.defect_analyzer import get_analyzer
     except ImportError:
-        return {
-            "enabled": False,
-            "message": "AI Agent module not available. Install: pip install anthropic"
-        }
+        try:
+            from agents.defect_analyzer import get_analyzer
+        except ImportError:
+            return {
+                "enabled": False,
+                "message": "AI Agent module not available. Install: pip install anthropic"
+            }
     
     # Get wafer defect data
     wafer_defects = [r for r in _defect_rows if r["wafer_id"] == wafer_id]
@@ -178,13 +223,16 @@ def analyze_wafer(wafer_id: str):
     return result
 
 
-@app.get("/api/agent/similar/{wafer_id}")
+@app.get("/api/agent/similar/{wafer_id}", dependencies=[Depends(require_auth)] if AUTH_AVAILABLE else [])
 def find_similar_wafers(wafer_id: str, top_k: int = 5):
     """Find wafers with similar defect patterns."""
     try:
-        from agents.defect_analyzer import get_analyzer
+        from backend.agents.defect_analyzer import get_analyzer
     except ImportError:
-        return {"enabled": False, "message": "AI Agent not available"}
+        try:
+            from agents.defect_analyzer import get_analyzer
+        except ImportError:
+            return {"enabled": False, "message": "AI Agent not available"}
     
     # Get target wafer
     target_defects = [r for r in _defect_rows if r["wafer_id"] == wafer_id]
