@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PM Assistant — Kevin's AI Lab</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif;
+  background: #0a0a14;
+  color: #f1f5f9;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 32px 24px;
+}
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(ellipse 70% 50% at 50% 0%, rgba(107,114,128,0.1), transparent);
+  pointer-events: none;
+}
+.icon { font-size: 64px; margin-bottom: 24px; }
+h1 { font-size: 32px; font-weight: 700; margin-bottom: 12px; }
+.subtitle { font-size: 16px; color: #64748b; margin-bottom: 32px; max-width: 440px; line-height: 1.7; }
+.features {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+  max-width: 480px;
+  margin-bottom: 40px;
+}
+.feature {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 10px;
+  padding: 12px 18px;
+  font-size: 14px;
+  color: #94a3b8;
+}
+.progress-bar {
+  width: 100%;
+  max-width: 320px;
+  height: 4px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 999px;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+.progress-fill {
+  height: 100%;
+  width: 15%;
+  background: linear-gradient(90deg, #475569, #6b7280);
+  border-radius: 999px;
+  animation: grow 3s ease-out forwards;
+}
+@keyframes grow {
+  from { width: 0; }
+  to { width: 15%; }
+}
+.status { font-size: 13px; color: #475569; margin-bottom: 32px; }
+.back {
+  font-size: 14px;
+  color: #64748b;
+  text-decoration: none;
+  padding: 10px 20px;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+.back:hover { color: #f1f5f9; border-color: rgba(255,255,255,0.2); background: rgba(255,255,255,0.05); }
+footer { margin-top: auto; padding-top: 40px; font-size: 12px; color: #334155; }
+footer a { color: #334155; text-decoration: none; }
+footer a:hover { color: #475569; }
+</style>
+</head>
+<body>
+
+<div class="icon">📋</div>
+<h1>PM Assistant</h1>
+<p class="subtitle">
+  專為產品經理設計的 AI 助理——自動化瑣事，讓你專心做決策。
+</p>
+
+<div class="features">
+  <div class="feature">🤖 用戶回饋摘要</div>
+  <div class="feature">📰 競品動態追蹤</div>
+  <div class="feature">📄 PRD 進度管理</div>
+  <div class="feature">💬 團隊溝通摘要</div>
+</div>
+
+<div class="progress-bar">
+  <div class="progress-fill"></div>
+</div>
+<p class="status">目前進度：概念驗證中</p>
+
+<a href="../index.html" class="back">← 返回首頁</a>
+
+<footer>
+  Kevin's AI Lab · <a href="mailto:kyl579678@gmail.com">kyl579678@gmail.com</a>
+</footer>
+
+</body>
+</html>

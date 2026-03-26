@@ -1,69 +1,470 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kevin's AI Lab</title>
-    <style>
-        body {
-            margin: 0;
-            padding: 0;
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        .container {
-            text-align: center;
-            color: white;
-            padding: 40px;
-            border-radius: 20px;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-        }
-        h1 {
-            font-size: 3em;
-            margin: 0;
-            animation: fadeIn 1s ease-in;
-        }
-        p {
-            font-size: 1.2em;
-            margin-top: 10px;
-            opacity: 0.9;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .demo-link {
-            display: inline-block;
-            margin-top: 24px;
-            padding: 12px 32px;
-            background: rgba(255,255,255,0.2);
-            color: white;
-            text-decoration: none;
-            border-radius: 8px;
-            font-size: 1.05em;
-            font-weight: 600;
-            backdrop-filter: blur(4px);
-            border: 1px solid rgba(255,255,255,0.25);
-            transition: background 0.2s, transform 0.2s;
-        }
-        .demo-link:hover {
-            background: rgba(255,255,255,0.35);
-            transform: translateY(-2px);
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kevin's AI Lab</title>
+<style>
+/* ── Variables ─────────────────────────── */
+:root {
+  --bg: #0a0a14;
+  --surface: rgba(255,255,255,0.04);
+  --surface-hover: rgba(255,255,255,0.07);
+  --border: rgba(255,255,255,0.08);
+  --red: #e84545;
+  --red-glow: rgba(232,69,69,0.25);
+  --purple: #8b5cf6;
+  --purple-glow: rgba(139,92,246,0.25);
+  --blue: #3b82f6;
+  --blue-glow: rgba(59,130,246,0.25);
+  --gray: #6b7280;
+  --text: #f1f5f9;
+  --text-muted: #94a3b8;
+  --text-dim: #475569;
+}
+
+/* ── Reset ─────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'Inter', 'PingFang TC', 'Microsoft JhengHei', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Background texture ─────────────────── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(232,69,69,0.12), transparent),
+    radial-gradient(ellipse 60% 40% at 80% 80%, rgba(139,92,246,0.06), transparent);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── Layout ───────────────────────────── */
+.container {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 24px;
+  position: relative;
+  z-index: 1;
+}
+
+/* ── Header ────────────────────────────── */
+header {
+  padding: 48px 0 40px;
+  text-align: center;
+}
+.header-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 6px 16px;
+  font-size: 12px;
+  color: var(--text-muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 24px;
+}
+.header-eyebrow .dot {
+  width: 6px; height: 6px;
+  background: var(--red);
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.8); }
+}
+header h1 {
+  font-size: clamp(36px, 6vw, 60px);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  margin-bottom: 16px;
+  background: linear-gradient(135deg, #fff 0%, #cbd5e1 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+header .tagline {
+  font-size: clamp(15px, 2vw, 18px);
+  color: var(--text-muted);
+  max-width: 520px;
+  margin: 0 auto 12px;
+  line-height: 1.7;
+}
+header .meta {
+  font-size: 13px;
+  color: var(--text-dim);
+}
+header .meta a { color: var(--text-dim); text-decoration: none; }
+header .meta a:hover { color: var(--red); }
+
+/* ── Divider ──────────────────────────── */
+.divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--border), transparent);
+  margin: 0 0 48px;
+}
+
+/* ── Projects label ───────────────────── */
+.section-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--text-dim);
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.section-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+/* ── Projects grid ─────────────────────── */
+.projects {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+  margin-bottom: 64px;
+}
+
+/* ── Project card ─────────────────────── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 28px;
+  text-decoration: none;
+  color: inherit;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  border-radius: 16px 16px 0 0;
+  transition: opacity 0.2s;
+}
+.card:hover {
+  transform: translateY(-3px);
+  background: var(--surface-hover);
+}
+.card:active { transform: translateY(-1px); }
+
+/* Card variants */
+.card.openclaw::before { background: var(--red); }
+.card.openclaw:hover { border-color: rgba(232,69,69,0.35); box-shadow: 0 8px 32px var(--red-glow); }
+
+.card.defect::before { background: var(--purple); }
+.card.defect:hover { border-color: rgba(139,92,246,0.35); box-shadow: 0 8px 32px var(--purple-glow); }
+
+.card.pm::before { background: var(--gray); }
+.card.pm:hover { border-color: rgba(107,114,128,0.35); }
+
+.card.pm { cursor: not-allowed; }
+
+/* Card top row */
+.card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+.card-icon {
+  width: 44px; height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  flex-shrink: 0;
+}
+.openclaw .card-icon { background: rgba(232,69,69,0.15); }
+.defect .card-icon { background: rgba(139,92,246,0.15); }
+.pm .card-icon { background: rgba(107,114,128,0.12); }
+
+/* Status badge */
+.badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 999px;
+  letter-spacing: 0.04em;
+  flex-shrink: 0;
+}
+.badge-live {
+  background: rgba(34,197,94,0.15);
+  color: #4ade80;
+  border: 1px solid rgba(34,197,94,0.25);
+}
+.badge-soon {
+  background: rgba(107,114,128,0.12);
+  color: var(--text-dim);
+  border: 1px solid var(--border);
+}
+
+/* Card title */
+.card h2 {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  letter-spacing: -0.01em;
+}
+
+/* Card description */
+.card p {
+  font-size: 14px;
+  color: var(--text-muted);
+  line-height: 1.65;
+  flex: 1;
+}
+
+/* Card tags */
+.card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 16px;
+}
+.tag {
+  font-size: 11px;
+  padding: 3px 8px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-dim);
+}
+
+/* Card arrow */
+.card-arrow {
+  margin-top: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-dim);
+  transition: color 0.2s, gap 0.2s;
+}
+.card:hover .card-arrow { color: var(--text-muted); gap: 10px; }
+.openclaw:hover .card-arrow { color: var(--red); }
+.defect:hover .card-arrow { color: var(--purple); }
+
+/* Locked card */
+.card.pm .card-arrow { color: var(--text-dim); }
+.card.pm:hover .card-arrow { color: var(--text-dim); gap: 6px; }
+
+/* ── About section ───────────────────── */
+.about {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 32px;
+  margin-bottom: 64px;
+}
+.about h3 {
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 12px;
+  color: var(--text);
+}
+.about p {
+  font-size: 14px;
+  color: var(--text-muted);
+  line-height: 1.75;
+  max-width: 680px;
+}
+.about-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 16px;
+}
+.about-link {
+  font-size: 13px;
+  padding: 6px 14px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-muted);
+  text-decoration: none;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.about-link:hover {
+  background: rgba(255,255,255,0.1);
+  color: var(--text);
+  border-color: rgba(255,255,255,0.15);
+}
+
+/* ── Footer ────────────────────────────── */
+footer {
+  margin-top: auto;
+  padding: 24px 0;
+  text-align: center;
+  border-top: 1px solid var(--border);
+  font-size: 12px;
+  color: var(--text-dim);
+}
+footer a { color: var(--text-dim); text-decoration: none; }
+footer a:hover { color: var(--red); }
+
+/* ── Responsive ────────────────────────── */
+@media (max-width: 640px) {
+  header { padding: 36px 0 32px; }
+  .projects { grid-template-columns: 1fr; gap: 16px; }
+  .card { padding: 22px; }
+  .about { padding: 24px; }
+}
+</style>
 </head>
 <body>
-    <div class="container">
-        <h1>🎉 我成功了！</h1>
-        <p>kevinl-ai.com 正式上線</p>
-        <p style="font-size: 0.9em; opacity: 0.7;">Powered by Cloudflare Tunnel</p>
-        <a href="/frontend/defect-idoctor.html" class="demo-link">&#x1F52C; Defect iDoctor Demo</a>
+
+<div class="container">
+
+  <!-- Header -->
+  <header>
+    <div class="header-eyebrow">
+      <span class="dot"></span>
+      Homelab · Since 2026
     </div>
+    <h1>Kevin's AI Lab</h1>
+    <p class="tagline">
+      探索 AI 的實驗室 — 從本地部署到半導體分析，<br>
+      這裡記錄每一個從概念到上線的過程。
+    </p>
+    <p class="meta">
+      Powered by <a href="https://docs.openclaw.ai" target="_blank">OpenClaw</a> + Cloudflare Tunnel
+    </p>
+  </header>
+
+  <div class="divider"></div>
+
+  <!-- Projects -->
+  <p class="section-label">Projects</p>
+
+  <div class="projects">
+
+    <!-- Card 1: OpenClaw 安裝教學 -->
+    <a href="openclaw/tutorial.html" class="card openclaw">
+      <div class="card-top">
+        <div class="card-icon">🦞</div>
+        <span class="badge badge-live">Live</span>
+      </div>
+      <h2>OpenClaw 安裝教學</h2>
+      <p>
+        從零開始的完整安裝指南——WSL2 設定、Telegram 配對、Control UI 操作，
+        以及如何讓 OpenClaw 自動適應你的使用習慣。圖文並茂，適合任何人。
+      </p>
+      <div class="card-tags">
+        <span class="tag">Windows</span>
+        <span class="tag">Telegram</span>
+        <span class="tag">AI Agent</span>
+        <span class="tag">Claude API</span>
+      </div>
+      <div class="card-arrow">
+        閱讀全文 →
+      </div>
+    </a>
+
+    <!-- Card 2: Defect iDoctor -->
+    <a href="defect-idoctor/index.html" class="card defect">
+      <div class="card-top">
+        <div class="card-icon">🧪</div>
+        <span class="badge badge-live">Live</span>
+      </div>
+      <h2>Defect iDoctor</h2>
+      <p>
+        半導體 Wafer Defect 視覺化 + AI 分析平台。互動式 wafer map、
+        生產數據儀表板、AI Agent root cause 分析，
+        全部在瀏覽器裡運行。
+      </p>
+      <div class="card-tags">
+        <span class="tag">FastAPI</span>
+        <span class="tag">Wafer Map</span>
+        <span class="tag">AI Analysis</span>
+        <span class="tag">MiniMax API</span>
+      </div>
+      <div class="card-arrow">
+        開啟平台 →
+      </div>
+    </a>
+
+    <!-- Card 3: PM Assistant -->
+    <div class="card pm">
+      <div class="card-top">
+        <div class="card-icon">📋</div>
+        <span class="badge badge-soon">施工中</span>
+      </div>
+      <h2>AI Assistant for PMs</h2>
+      <p>
+        專為產品經理設計的 AI 助理——自動摘要用戶回饋、
+        追蹤競品動態、管理 PRD 進度。
+        讓 AI 處理瑣事，你專心做決策。
+      </p>
+      <div class="card-tags">
+        <span class="tag">Product Manager</span>
+        <span class="tag">Workflow Automation</span>
+        <span class="tag">Coming Soon</span>
+      </div>
+      <div class="card-arrow">
+        🔒 敬請期待
+      </div>
+    </div>
+
+  </div>
+
+  <!-- About -->
+  <div class="about">
+    <h3>關於這個 Lab</h3>
+    <p>
+      Kevin 的個人實驗室，記錄 AI 應用的每一個實驗。
+      從自架 AI 助理、資料視覺化到自動化流程——
+      所有專案都盡量保持本地部署、隱私優先、开源友好。
+    </p>
+    <div class="about-links">
+      <a href="https://github.com/kyl579678" target="_blank" class="about-link">
+        🐙 GitHub
+      </a>
+      <a href="https://kevinl-ai.com/openclaw/tutorial.html" class="about-link">
+        📖 安裝教學原始碼
+      </a>
+      <a href="https://docs.openclaw.ai" target="_blank" class="about-link">
+        🦞 OpenClaw 文件
+      </a>
+    </div>
+  </div>
+
+</div>
+
+<!-- Footer -->
+<footer>
+  <div class="container">
+    © 2026 Kevin Lin · Built with OpenClaw · <a href="mailto:kyl579678@gmail.com">Contact</a>
+  </div>
+</footer>
+
 </body>
 </html>
